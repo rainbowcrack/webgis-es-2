@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WebGIS Saúde BH — Serviços próximos a hospitais</title>
+
+<!-- Leaflet (mapa) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Turf.js (biblioteca de análise/consulta espacial: contém, intercepta, está contido, buffer, distância) -->
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="30" height="30">
+          <path d="M24 4c-8 6-16 9-16 20a16 16 0 0 0 32 0c0-11-8-14-16-20Z" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <path d="M24 15v14M17 22h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>WebGIS Saúde <span>BH</span></h1>
+        <p>Localização de farmácias e laboratórios próximos a hospitais</p>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <span id="statusChip" class="chip">Selecione um hospital</span>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ===================== PAINEL LATERAL ===================== -->
+    <aside class="panel">
+
+      <section class="panel-block">
+        <label class="panel-label" for="hospitalSearch">1. Hospital de referência</label>
+
+        <input
+          type="text"
+          id="hospitalSearch"
+          placeholder="Buscar hospital pelo nome…"
+          autocomplete="off"
+        />
+        <ul id="hospitalSearchResults" class="search-results hidden"></ul>
+
+        <div class="cascade-row">
+          <div class="cascade-col">
+            <span class="cascade-label">Região</span>
+            <select id="regiaoSelect">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="cascade-col">
+            <span class="cascade-label">Bairro</span>
+            <select id="bairroSelect">
+              <option value="">Todos</option>
+            </select>
+          </div>
+        </div>
+
+        <select id="hospitalSelect">
+          <option value="" disabled selected>Escolha um hospital…</option>
+        </select>
+        <p class="hint" id="hospitalHint">O ponto do hospital é a origem de todas as consultas espaciais.</p>
+      </section>
+
+      <section class="panel-block">
+        <span class="panel-label">2. Tipo de serviço (filtro)</span>
+        <div class="check-row">
+          <label class="check-pill">
+            <input type="checkbox" id="fFarmacia" checked />
+            <span>💊 Farmácias</span>
+          </label>
+          <label class="check-pill">
+            <input type="checkbox" id="fLaboratorio" checked />
+            <span>🩻 Laboratórios de radiografia</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel-block">
+        <label class="panel-label" for="raioSelect">3. Raio de busca (consulta espacial: está contido)</label>
+        <select id="raioSelect">
+          <option value="200">200 m</option>
+          <option value="500" selected>500 m</option>
+          <option value="1000">1000 m</option>
+          <option value="1500">1500 m</option>
+        </select>
+      </section>
+
+      <section class="panel-block">
+        <label class="panel-label" for="ordenarSelect">4. Ordenar resultados</label>
+        <select id="ordenarSelect">
+          <option value="distancia">Mais próximos primeiro</option>
+          <option value="alfabetica">Ordem alfabética (A–Z)</option>
+        </select>
+      </section>
+
+      <section class="panel-block query-box">
+        <span class="panel-label">Consulta espacial ativa</span>
+        <ul id="queryInfo" class="query-info">
+          <li class="muted">Escolha um hospital para executar as consultas.</li>
+        </ul>
+      </section>
+
+      <section class="panel-block results-block">
+        <div class="results-header">
+          <span class="panel-label">Resultados</span>
+          <span id="resultCount" class="count-badge">0</span>
+        </div>
+        <ul id="resultList" class="result-list">
+          <li class="empty-state">Nenhum resultado ainda. Selecione um hospital ao lado.</li>
+        </ul>
+      </section>
+
+    </aside>
+
+    <!-- ===================== MAPA ===================== -->
+    <main class="map-wrap">
+      <div id="map"></div>
+
+      <div class="legend">
+        <strong>Legenda</strong>
+        <div><span class="dot hospital"></span> Hospital selecionado</div>
+        <div><span class="dot farmacia"></span> Farmácia</div>
+        <div><span class="dot laboratorio"></span> Laboratório de radiografia</div>
+        <div><span class="swatch buffer"></span> Raio de busca (buffer)</div>
+        <div><span class="swatch bairro"></span> Bairro do hospital (contém)</div>
+        <div><span class="swatch bairro-vizinho"></span> Bairro vizinho (intercepta?)</div>
+        <div><span class="line"></span> Linha até o resultado mais próximo</div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
